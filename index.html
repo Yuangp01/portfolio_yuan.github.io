@@ -2481,6 +2481,180 @@ html{scroll-padding-top:90px}body{font-family:Inter,-apple-system,BlinkMacSystem
   #work .project-card[data-project="1"] span.pending-dashboard {min-height:44px;}
 }
 </style>
+<style id="interactive-analytics-kpi">
+/* Sequential KPI analysis: column 1 -> column 2 -> column 3.
+   This only changes the Key Findings widgets; tooltips remain un-clipped. */
+#work .findings-impact .impact-heading {position:relative;}
+#work .findings-impact .impact-heading > small {padding-right:28px;}
+#work .findings-impact .kpi-replay {
+  position:absolute;right:0;top:-3px;width:24px;height:24px;
+  display:grid;place-items:center;border:1px solid #cadce9;
+  border-radius:50%;background:#fff;color:#1b629b;padding:0;
+  cursor:pointer;font:600 18px/1 Inter,Arial,sans-serif;
+  transition:background .2s ease,transform .2s ease;
+}
+#work .findings-impact .kpi-replay:hover {background:#e4f2ff;transform:rotate(-28deg);}
+#work .findings-impact .kpi-replay:focus-visible {outline:2px solid #1769ff;outline-offset:2px;}
+#work .findings-impact .impact-metric {
+  position:relative;isolation:isolate;min-width:0;overflow:visible;
+  transition:border-color .35s ease,box-shadow .35s ease,transform .25s ease;
+}
+#work .findings-impact .impact-metric:hover,
+#work .findings-impact .impact-metric:focus-visible {transform:translateY(-2px);}
+#work .findings-impact .impact-metric > strong {
+  display:block;position:relative;z-index:1;width:100%;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:clip;
+  font-variant-numeric:tabular-nums;transform:none !important;
+  line-height:1.12;
+}
+#work .findings-impact .impact-metric > strong .kpi-display {
+  display:inline-flex;align-items:baseline;width:max-content;max-width:none;
+  white-space:nowrap;transform-origin:left center;vertical-align:top;
+  font-variant-numeric:tabular-nums;
+  transition:opacity .18s ease;
+}
+#work .findings-impact .impact-metric.kpi-pending > strong .kpi-display {opacity:0;}
+#work .findings-impact .impact-metric > span {position:relative;z-index:1;min-width:0;}
+/* A separate overlay clips only the visual effect and never the tooltips. */
+#work .findings-impact .kpi-effect-clip {
+  position:absolute;inset:1px;overflow:hidden;border-radius:inherit;
+  pointer-events:none;z-index:0;
+}
+#work .findings-impact .kpi-effect-clip::before {
+  content:"";position:absolute;inset:0;opacity:0;
+  background:linear-gradient(115deg,transparent 15%,rgba(49,135,203,.060) 52%,transparent 82%);
+  transform:translateX(-90%);
+}
+#work .findings-impact .impact-metric.kpi-running .kpi-effect-clip::before {
+  animation:kpi-soft-pass var(--kpi-duration,1.9s) ease-in-out forwards;
+}
+#work .findings-impact .kpi-progress {
+  position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#70baff,#1769b2 70%,#2ab68b);
+  transform-origin:left center;transform:scaleX(0);opacity:0;
+}
+#work .findings-impact .impact-metric.kpi-running .kpi-progress {
+  opacity:.85;animation:kpi-progress-load var(--kpi-duration,1.9s) cubic-bezier(.24,.7,.12,1) forwards;
+}
+#work .findings-impact .kpi-status {
+  position:absolute;top:7px;right:7px;font:650 6.5px/1 Inter,Arial,sans-serif;
+  color:#4387b9;letter-spacing:.6px;opacity:0;transition:opacity .2s ease;
+}
+#work .findings-impact .impact-metric.kpi-running .kpi-status {opacity:.82;}
+#work .findings-impact .impact-metric.kpi-finished .kpi-status {opacity:.72;color:#238672;}
+#work .findings-impact .impact-metric.kpi-finished {
+  border-color:#c6deee;box-shadow:0 2px 10px rgba(23,100,154,.055);
+}
+#work .findings-impact .kpi-odometer {display:inline-flex;align-items:baseline;white-space:nowrap;}
+#work .findings-impact .kpi-digit {
+  position:relative;display:inline-block;flex:0 0 1ch;width:1ch;
+  height:1em;line-height:1em;overflow:hidden;vertical-align:top;
+  font-variant-numeric:tabular-nums;
+}
+/* A soft shaded lip gives each digit wheel depth as it rolls vertically. */
+#work .findings-impact .kpi-digit::after {
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(255,255,255,.18),transparent 27%,transparent 75%,rgba(255,255,255,.16));
+}
+#work .findings-impact .kpi-digit-track {
+  display:flex;flex-direction:column;align-items:stretch;
+  transform:translate3d(0,0,0);will-change:transform;
+}
+#work .findings-impact .kpi-digit-track > span {
+  display:block;flex:0 0 1em;height:1em;line-height:1em;
+  text-align:center;font-variant-numeric:tabular-nums;
+}
+#work .findings-impact .kpi-digit.kpi-spinning .kpi-digit-track {filter:blur(.24px);}
+#work .findings-impact .kpi-punctuation {display:inline-block;white-space:pre;line-height:1em;}
+#work .findings-impact .kpi-word {display:inline-flex;white-space:nowrap;}
+#work .findings-impact .kpi-letter {
+  display:inline-block;opacity:0;filter:blur(2px);transform:translateY(5px);
+  transition:opacity .42s ease,filter .56s ease,transform .6s cubic-bezier(.2,.7,.2,1);
+  transition-delay:var(--letter-delay,0ms);
+}
+#work .findings-impact .kpi-word.kpi-show .kpi-letter {opacity:1;filter:blur(0);transform:translateY(0);}
+@keyframes kpi-soft-pass {
+  0% {opacity:0;transform:translateX(-90%)}
+  23% {opacity:1}
+  95% {opacity:.5}
+  100% {opacity:0;transform:translateX(95%)}
+}
+@keyframes kpi-progress-load {
+  0% {transform:scaleX(0)}
+  23% {transform:scaleX(.18)}
+  52% {transform:scaleX(.47)}
+  78% {transform:scaleX(.86)}
+  100% {transform:scaleX(1)}
+}
+@media(prefers-reduced-motion:reduce) {
+  #work .findings-impact .kpi-replay {display:none;}
+  #work .findings-impact .kpi-effect-clip::before,
+  #work .findings-impact .kpi-progress {animation:none!important;}
+  #work .findings-impact .kpi-letter,
+  #work .findings-impact .impact-metric {transition:none!important;}
+}
+</style>
+<style id="kpi-insight-flow-css">
+/* An explanatory, interactive path below each three-card finding grid. */
+#work .findings-impact .kpi-pathway {
+  margin-top:10px;padding:8px 9px 7px;
+  border:1px solid #dcebf7;background:rgba(255,255,255,.56);
+  border-radius:7px;min-width:0;
+}
+#work .findings-impact .kpi-path-header {
+  display:flex;align-items:center;justify-content:space-between;gap:7px;
+  font-size:7px;font-weight:750;letter-spacing:.75px;color:#7991a8;
+  text-transform:uppercase;margin-bottom:6px;
+}
+#work .findings-impact .kpi-path-header .kpi-path-live {display:inline-flex;align-items:center;gap:5px;color:#4b7a9d;}
+#work .findings-impact .kpi-path-header .kpi-path-live::before {
+  content:"";width:5px;height:5px;border-radius:50%;background:#7aaacf;
+}
+#work .findings-impact .kpi-path-progress {font-variant-numeric:tabular-nums;color:#417ba8;letter-spacing:.3px;}
+#work .findings-impact .kpi-path-steps {
+  display:grid;grid-template-columns:minmax(0,1fr) 15px minmax(0,1fr) 15px minmax(0,1fr);
+  align-items:center;gap:3px;min-width:0;
+}
+#work .findings-impact .kpi-path-node {
+  min-width:0;min-height:26px;padding:5px 3px;
+  border:1px solid #d5e5f1;background:#fff;border-radius:5px;
+  color:#62809b;display:flex;align-items:center;justify-content:center;gap:4px;
+  font-family:inherit;font-size:9px;font-weight:650;line-height:1;
+  cursor:pointer;transition:background .2s,border-color .2s,color .2s,box-shadow .2s,transform .2s;
+}
+#work .findings-impact .kpi-path-node .kpi-path-number {font-size:7px;color:#8da6bb;font-variant-numeric:tabular-nums;}
+#work .findings-impact .kpi-path-node:hover {border-color:#88bce5;background:#f3faff;color:#135b96;}
+#work .findings-impact .kpi-path-node:focus-visible {outline:2px solid #2075b8;outline-offset:2px;}
+#work .findings-impact .kpi-path-node.is-active {
+  border-color:#74afe1;background:#eaf5ff;color:#155d9a;
+  box-shadow:0 0 0 2px rgba(69,146,205,.08);
+}
+#work .findings-impact .kpi-path-node.is-complete:not(.is-active) {background:#f5fbf9;border-color:#b7ddcf;color:#357f66;}
+#work .findings-impact .kpi-path-connector {display:flex;align-items:center;justify-content:center;color:#bdd3e4;transition:color .24s ease;}
+#work .findings-impact .kpi-path-connector svg {width:14px;height:11px;display:block;overflow:visible;}
+#work .findings-impact .kpi-path-connector.is-passed {color:#2984c1;}
+#work .findings-impact .kpi-path-connector.is-passed svg {animation:kpi-arrow-transfer .6s ease both;}
+#work .findings-impact .kpi-path-detail {
+  font-size:9px;color:#5e7890;line-height:1.42;margin:6px 0 0;min-height:1.42em;
+  max-width:100%;overflow-wrap:break-word;
+  animation:kpi-path-detail-in .3s ease both;
+}
+#work .findings-impact .impact-metric.kpi-running {border-color:#7fbee7;box-shadow:0 0 0 2px rgba(58,139,196,.085);}
+@keyframes kpi-arrow-transfer {0%{transform:translateX(-3px);opacity:.45}100%{transform:translateX(0);opacity:1}}
+@keyframes kpi-path-detail-in {from{opacity:.45;transform:translateY(2px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){
+  #work .findings-impact .kpi-pathway {margin-top:8px;padding:8px 7px 7px;}
+  #work .findings-impact .kpi-path-steps {grid-template-columns:minmax(0,1fr) 11px minmax(0,1fr) 11px minmax(0,1fr);gap:2px;}
+  #work .findings-impact .kpi-path-connector svg {width:11px;}
+  #work .findings-impact .kpi-path-node {font-size:8px;gap:3px;padding:5px 2px;}
+  #work .findings-impact .kpi-path-detail {font-size:8.5px;}
+}
+@media(prefers-reduced-motion:reduce){
+ #work .findings-impact .kpi-path-connector.is-passed svg,
+ #work .findings-impact .kpi-path-detail {animation:none!important;}
+ #work .findings-impact .kpi-path-node {transition:none!important;}
+}
+</style>
 </head>
 
 <body>
@@ -2580,7 +2754,7 @@ html{scroll-padding-top:90px}body{font-family:Inter,-apple-system,BlinkMacSystem
       <span>Leading crime group</span>
       <small class="metric-tooltip" role="tooltip" id="metric-0-2">Property crime was the largest broad offense category in the project findings.</small>
     </div></div>
- </div><div class="project-tags"><span>Power BI</span><span>DAX</span><span>Geographic Analytics</span></div><a class="live-dashboard-button" href="https://app.powerbi.com/view?r=eyJrIjoiNmI0NDMxZmUtMDQwMi00MjZmLWFjOTAtOGMyNTE5NGViZDVmIiwidCI6ImFjNzllNWE4LWUwZTQtNDM0Yi1hMjkyLTJjODliNWMyODM2NiIsImMiOjF9&amp;pageName=62e7a2260500d1809307" target="_blank" rel="noopener noreferrer" aria-label="Open the Crime Analytics live Power BI dashboard in a new tab"><span>LIVE DASHBOARD</span><span aria-hidden="true">↗</span></a><button class="case-study-button" type="button" aria-haspopup="dialog">View Case Study ↗</button><details class="project-more" hidden><summary>Explore project details <span aria-hidden="true">+</span></summary><div class="project-benefits"><div class="benefits-heading"><h4>What this project helps users do</h4><span>Three ways to explore the data</span></div><div class="project-benefits-grid"><div class="benefit-card"><div class="benefit-card-top"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg></span><span class="benefit-number">01</span></div><h5>Find similar cases</h5><p>Compare cases by crime type, location, and date to look for possible connections.</p><details class="benefit-example"><summary><span class="benefit-show">See an example</span><span class="benefit-hide">Close example</span><span class="benefit-toggle" aria-hidden="true">+</span></summary><div class="benefit-example-body"><span class="benefit-example-label">FOR EXAMPLE</span><p>Start with one case, then look for nearby cases with the same crime type and similar dates.</p><small>A possible connection is a starting point for review, not proof that cases are linked.</small></div></details></div><div class="benefit-card"><div class="benefit-card-top"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></span><span class="benefit-number">02</span></div><h5>Understand each case</h5><p>See what happened, where it happened, and which crime types were recorded in one place.</p><details class="benefit-example"><summary><span class="benefit-show">See an example</span><span class="benefit-hide">Close example</span><span class="benefit-toggle" aria-hidden="true">+</span></summary><div class="benefit-example-body"><span class="benefit-example-label">FOR EXAMPLE</span><p>Open a selected case to review its date, location, and recorded crime types together.</p><small>Bring the details together before exploring other cases.</small></div></details></div><div class="benefit-card"><div class="benefit-card-top"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16M8 15l4-5 4 2 4-6"/></svg></span><span class="benefit-number">03</span></div><h5>Spot crime trends</h5><p>Compare areas and time periods to see where and when more crimes were reported.</p><details class="benefit-example"><summary><span class="benefit-show">See an example</span><span class="benefit-hide">Close example</span><span class="benefit-toggle" aria-hidden="true">+</span></summary><div class="benefit-example-body"><span class="benefit-example-label">FOR EXAMPLE</span><p>Compare reported incidents across areas or months to see where activity is concentrated.</p><small>Use the patterns to guide further questions and analysis.</small></div></details></div></div></div>
+ </div><div class="project-tags"><span>Power BI</span><span>DAX</span><span>Geographic Analytics</span></div><a class="live-dashboard-button" href="https://app.powerbi.com/view?r=eyJrIjoiYTI0YzhhYmEtNzEyZS00ZWQyLTkzYmUtY2Y5NmY5NDE2ZjhjIiwidCI6ImFjNzllNWE4LWUwZTQtNDM0Yi1hMjkyLTJjODliNWMyODM2NiIsImMiOjF9&amp;pageName=62e7a2260500d1809307" target="_blank" rel="noopener noreferrer" aria-label="Open the Crime Analytics live Power BI dashboard in a new tab"><span>LIVE DASHBOARD</span><span aria-hidden="true">↗</span></a><button class="case-study-button" type="button" aria-haspopup="dialog">View Case Study ↗</button><details class="project-more" hidden><summary>Explore project details <span aria-hidden="true">+</span></summary><div class="project-benefits"><div class="benefits-heading"><h4>What this project helps users do</h4><span>Three ways to explore the data</span></div><div class="project-benefits-grid"><div class="benefit-card"><div class="benefit-card-top"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg></span><span class="benefit-number">01</span></div><h5>Find similar cases</h5><p>Compare cases by crime type, location, and date to look for possible connections.</p><details class="benefit-example"><summary><span class="benefit-show">See an example</span><span class="benefit-hide">Close example</span><span class="benefit-toggle" aria-hidden="true">+</span></summary><div class="benefit-example-body"><span class="benefit-example-label">FOR EXAMPLE</span><p>Start with one case, then look for nearby cases with the same crime type and similar dates.</p><small>A possible connection is a starting point for review, not proof that cases are linked.</small></div></details></div><div class="benefit-card"><div class="benefit-card-top"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></span><span class="benefit-number">02</span></div><h5>Understand each case</h5><p>See what happened, where it happened, and which crime types were recorded in one place.</p><details class="benefit-example"><summary><span class="benefit-show">See an example</span><span class="benefit-hide">Close example</span><span class="benefit-toggle" aria-hidden="true">+</span></summary><div class="benefit-example-body"><span class="benefit-example-label">FOR EXAMPLE</span><p>Open a selected case to review its date, location, and recorded crime types together.</p><small>Bring the details together before exploring other cases.</small></div></details></div><div class="benefit-card"><div class="benefit-card-top"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16M8 15l4-5 4 2 4-6"/></svg></span><span class="benefit-number">03</span></div><h5>Spot crime trends</h5><p>Compare areas and time periods to see where and when more crimes were reported.</p><details class="benefit-example"><summary><span class="benefit-show">See an example</span><span class="benefit-hide">Close example</span><span class="benefit-toggle" aria-hidden="true">+</span></summary><div class="benefit-example-body"><span class="benefit-example-label">FOR EXAMPLE</span><p>Compare reported incidents across areas or months to see where activity is concentrated.</p><small>Use the patterns to guide further questions and analysis.</small></div></details></div></div></div>
 </details></div></article>
 
 <article class="project-card reveal compact-project" data-project="2"><div tabindex="0" role="button" aria-haspopup="dialog" aria-label="Open case study" class="project-cover project-cover-3"><span class="project-image-layer" aria-hidden="true"></span><span>PROJECT / 02</span><svg viewBox="0 0 220 160" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="40" y="72" width="42" height="22" rx="2"/><rect x="88" y="72" width="42" height="22" rx="2"/><rect x="136" y="72" width="42" height="22" rx="2"/><path d="M24 128h172"/><path d="M34 38c22 0 29 14 48 14 16 0 25-10 37-18 11-7 20-10 35-10 20 0 32 10 45 19 8 6 17 9 35 9"/><circle cx="34" cy="38" r="4"/><circle cx="136" cy="24" r="4"/><circle cx="191" cy="43" r="4"/></svg><b class="explore-overlay">Explore Project ↗</b></div><div class="project-content"><div class="project-category">Supply Chain Analytics</div><h3 class="project-title">Supply Chain Analytics Dashboard</h3><p class="problem-statement"><strong>THE PROBLEM</strong>Identify where delivery delays and order-level profitability deserve investigation.</p><p class="solution-statement">An executive KPI overview connected to delivery performance and individual orders.</p><div class="original-description" hidden><p class="project-desc">
@@ -3170,5 +3344,290 @@ recruiterContactForm.addEventListener("submit", async (event) => {
  document.querySelector('.hero-actions a[href="#work"]').classList.add('work-portal-trigger');
  const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(!entry.isIntersecting)return;const target=entry.target,end=Number(target.dataset.count);if(reduced.matches){target.textContent=end;observer.unobserve(target);return;}const start=performance.now();function count(now){const progress=Math.min((now-start)/600,1);target.textContent=Math.round(end*progress);if(progress<1)requestAnimationFrame(count);}requestAnimationFrame(count);observer.unobserve(target);}),{threshold:.6});document.querySelectorAll('[data-count]').forEach(metric=>observer.observe(metric));
 })();
-</script></body>
+</script><script id="interactive-analytics-kpi-script">
+(() => {
+  'use strict';
+  const sections = [...document.querySelectorAll('#work .findings-impact')];
+  if (!sections.length) return;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const PREPARE = 170;
+  const ROLL_BASE = 1280;
+  const WHEEL_START = 45;
+  const WHEEL_EXTRA = 55;
+  const SETTLE = 120;
+  // Each following column begins ~60% into the previous column's animation.
+  // The sequence is 01/01 -> 02/02 -> 03/03, with natural overlap.
+  const START_FRACTION = 0.61;
+  const numeric = text => /^[\d$,.%]+$/.test(text) && /\d/.test(text);
+  const explanations = {
+    '0': [
+      {name:'When', text:'2022 had the highest reported crime volume in the 2020–2024 analysis.'},
+      {name:'Where', text:'Central recorded the highest volume among the divisions compared.'},
+      {name:'What', text:'Property crime was the largest broad offense category in this analysis.'}
+    ],
+    '2': [
+      {name:'Delivery', text:'The dashboard reports a 57.2% late-delivery rate with all slicers set to All.'},
+      {name:'Orders', text:'3,319 orders were identified as loss-making in the report.'},
+      {name:'Loss', text:'$214,111 in recorded losses; this does not establish that delays caused them.'}
+    ]
+  };
+
+  function fit(metric) {
+    const display = metric.value.querySelector('.kpi-display');
+    if (!display) return;
+    display.style.transform = 'none';
+    const width = metric.value.clientWidth;
+    const actual = display.scrollWidth;
+    if (width > 0 && actual > width) {
+      display.style.transform = `scaleX(${Math.max(.1,(width-1)/actual)})`;
+    }
+  }
+  function setStatic(metric) {
+    const display = document.createElement('span');
+    display.className = 'kpi-display';
+    display.textContent = metric.target;
+    metric.value.replaceChildren(display);
+    fit(metric);
+  }
+  function buildOdometer(metric) {
+    const display = document.createElement('span');
+    display.className = 'kpi-display';
+    const odometer = document.createElement('span');
+    odometer.className = 'kpi-odometer';
+    const tracks = [];
+    [...metric.target].forEach(ch => {
+      if (!/\d/.test(ch)) {
+        const punctuation = document.createElement('span');
+        punctuation.className = 'kpi-punctuation';
+        punctuation.textContent = ch;
+        odometer.appendChild(punctuation);
+        return;
+      }
+      const viewport = document.createElement('span');
+      viewport.className = 'kpi-digit';
+      const track = document.createElement('span');
+      track.className = 'kpi-digit-track';
+      for (let i=0; i<50; i++) {
+        const row = document.createElement('span');
+        row.textContent = String(i%10);
+        track.appendChild(row);
+      }
+      viewport.appendChild(track);
+      odometer.appendChild(viewport);
+      tracks.push({track,viewport,digit:Number(ch)});
+    });
+    display.appendChild(odometer);
+    metric.value.replaceChildren(display);
+    fit(metric);
+    return tracks;
+  }
+  function buildWord(metric) {
+    const display = document.createElement('span');
+    display.className = 'kpi-display';
+    const word = document.createElement('span');
+    word.className = 'kpi-word';
+    [...metric.target].forEach((ch,i) => {
+      const letter = document.createElement('span');
+      letter.className = 'kpi-letter';
+      letter.style.setProperty('--letter-delay', `${i*75}ms`);
+      letter.textContent = ch;
+      word.appendChild(letter);
+    });
+    display.appendChild(word);
+    metric.value.replaceChildren(display);
+    fit(metric);
+    return word;
+  }
+  function duration(metric) {
+    const digits = [...metric.target].filter(ch => /\d/.test(ch)).length;
+    return metric.isNumeric
+      ? PREPARE + ROLL_BASE + (digits-1)*(WHEEL_START+WHEEL_EXTRA) + SETTLE
+      : PREPARE + Math.max(840, metric.target.length*75+560) + SETTLE;
+  }
+
+  sections.forEach(section => {
+    const project = section.closest('.project-card')?.dataset.project || '0';
+    const metadata = explanations[project] || explanations['0'];
+    const metrics = [...section.querySelectorAll('.impact-metric')].map((tile,index) => {
+      const value = tile.querySelector('strong');
+      const target = value.textContent.trim();
+      const label = tile.querySelector(':scope > span')?.textContent.trim() || '';
+      const effect = document.createElement('i');
+      effect.className = 'kpi-effect-clip';
+      effect.setAttribute('aria-hidden','true');
+      const progress = document.createElement('i');
+      progress.className = 'kpi-progress';
+      const status = document.createElement('i');
+      status.className = 'kpi-status';
+      effect.append(progress,status);
+      tile.appendChild(effect);
+      tile.setAttribute('aria-label',`${target} — ${label}`);
+      value.setAttribute('aria-hidden','true');
+      const metric = {tile,value,target,index,status,isNumeric:numeric(target)};
+      metric.duration=duration(metric);
+      tile.style.setProperty('--kpi-duration', `${metric.duration}ms`);
+      setStatic(metric);
+      return metric;
+    });
+    const replay = document.createElement('button');
+    replay.className='kpi-replay';
+    replay.type='button';
+    replay.textContent='↻';
+    replay.title='Replay the Key Findings sequence';
+    replay.setAttribute('aria-label','Replay the Key Findings sequence');
+    section.querySelector('.impact-heading').appendChild(replay);
+
+    // Interactive mini-diagram connects each metric without overlaying the tiles.
+    const path = document.createElement('div');
+    path.className = 'kpi-pathway';
+    path.setAttribute('aria-label','Interactive findings analysis path');
+    const header = document.createElement('div');
+    header.className='kpi-path-header';
+    const left = document.createElement('span');
+    left.className='kpi-path-live';
+    left.textContent='INSIGHT PATH';
+    const progressLabel = document.createElement('span');
+    progressLabel.className='kpi-path-progress';
+    progressLabel.textContent='01 / 03';
+    header.append(left,progressLabel);
+    const steps=document.createElement('div');
+    steps.className='kpi-path-steps';
+    steps.setAttribute('role','group');
+    steps.setAttribute('aria-label','Select a finding to see its explanation and replay the metric');
+    const buttons=[];
+    const connectors=[];
+    metadata.forEach((info,i) => {
+      if (i) {
+        const connector=document.createElement('span');
+        connector.className='kpi-path-connector';
+        connector.setAttribute('aria-hidden','true');
+        connector.innerHTML='<svg viewBox="0 0 20 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 6h16m-5-4 5 4-5 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        steps.appendChild(connector);
+        connectors.push(connector);
+      }
+      const button = document.createElement('button');
+      button.type='button';
+      button.className='kpi-path-node';
+      button.innerHTML=`<span class="kpi-path-number">0${i+1}</span>`;
+      const name=document.createElement('span');
+      name.textContent=info.name;
+      button.appendChild(name);
+      button.setAttribute('aria-label', `Step ${i+1}, ${info.name}: ${info.text}. Click to replay this metric.`);
+      button.setAttribute('aria-pressed','false');
+      steps.appendChild(button);
+      buttons.push(button);
+    });
+    const detail=document.createElement('p');
+    detail.className='kpi-path-detail';
+    detail.textContent=metadata[0].text;
+    path.append(header,steps,detail);
+    section.querySelector('.impact-grid').insertAdjacentElement('afterend',path);
+
+    const state={timeouts:[],generation:0,finished:new Set()};
+    function later(fn,ms,generation) {
+      state.timeouts.push(setTimeout(() => {if (state.generation===generation) fn();},ms));
+    }
+    function selectStep(index) {
+      progressLabel.textContent=`0${index+1} / 03 · ${metadata[index].name}`;
+      detail.textContent=metadata[index].text;
+      // Restart the tiny caption entrance animation so changes are legible.
+      detail.style.animation='none';
+      void detail.offsetWidth;
+      detail.style.animation='';
+      buttons.forEach((button,i) => {
+        button.classList.toggle('is-active',i===index);
+        button.classList.toggle('is-complete',state.finished.has(i));
+        button.setAttribute('aria-pressed',String(i===index));
+      });
+      connectors.forEach((connector,i) => connector.classList.toggle('is-passed',i < index));
+    }
+    function finish(metric) {
+      setStatic(metric);
+      metric.tile.classList.remove('kpi-running','kpi-rolling');
+      metric.tile.classList.add('kpi-finished');
+      metric.status.textContent='READY';
+      state.finished.add(metric.index);
+      buttons[metric.index].classList.add('is-complete');
+    }
+    function startMetric(index,generation) {
+      const metric=metrics[index];
+      const tracks=metric.isNumeric?buildOdometer(metric):null;
+      const word=tracks?null:buildWord(metric);
+      metric.tile.classList.remove('kpi-pending','kpi-finished');
+      metric.tile.classList.add('kpi-running');
+      metric.status.textContent='ANALYZING';
+      selectStep(index);
+      later(() => {
+        metric.tile.classList.add('kpi-rolling');
+        metric.status.textContent='CALCULATING';
+        if (tracks) {
+          tracks.forEach(({track,viewport,digit},i) => {
+            const fromRight=tracks.length-1-i;
+            later(() => {
+              viewport.classList.add('kpi-spinning');
+              const rotations=Math.max(2,4-Math.floor(fromRight/1.5));
+              track.style.transition=`transform ${ROLL_BASE+fromRight*WHEEL_EXTRA}ms cubic-bezier(.17,.79,.17,1)`;
+              track.style.transform=`translate3d(0,-${rotations*10+digit}em,0)`;
+            },fromRight*WHEEL_START,generation);
+          });
+        } else word.classList.add('kpi-show');
+      },PREPARE,generation);
+      later(() => finish(metric),metric.duration,generation);
+    }
+    function reset() {
+      state.generation++;
+      state.timeouts.forEach(clearTimeout);
+      state.timeouts=[];
+      state.finished.clear();
+      metrics.forEach(metric => {
+        metric.tile.classList.remove('kpi-pending','kpi-running','kpi-rolling','kpi-finished');
+        metric.status.textContent='';
+        setStatic(metric);
+      });
+      buttons.forEach(button => button.classList.remove('is-complete'));
+      return state.generation;
+    }
+    function animate() {
+      const generation=reset();
+      selectStep(0);
+      if (reducedMotion.matches) return;
+      metrics.forEach(metric => metric.tile.classList.add('kpi-pending'));
+      void section.offsetWidth;
+      let startAt=0;
+      metrics.forEach((metric,i) => {
+        later(() => startMetric(i,generation),startAt,generation);
+        // Begin the next KPI while this KPI is still spinning, not on completion.
+        startAt += Math.round(metric.duration * START_FRACTION);
+      });
+    }
+    replay.addEventListener('click',animate);
+    buttons.forEach((button,i) => button.addEventListener('click',() => {
+      const generation=reset();
+      selectStep(i);
+      if (reducedMotion.matches) return;
+      // Clicking a diagram node focuses and replays exactly that KPI.
+      metrics.forEach((metric,j) => {if (j!==i) {metric.tile.classList.add('kpi-finished');state.finished.add(j);}});
+      buttons.forEach((btn,j) => btn.classList.toggle('is-complete',j!==i));
+      void section.offsetWidth;
+      startMetric(i,generation);
+    }));
+    section._runKpiAnalysis=animate;
+    if ('ResizeObserver' in window) {
+      const observer=new ResizeObserver(() => metrics.forEach(fit));
+      metrics.forEach(metric => observer.observe(metric.value));
+    }
+  });
+  if (!('IntersectionObserver' in window)) {
+    sections.forEach(section=>section._runKpiAnalysis());
+  } else {
+    const observer = new IntersectionObserver(entries=>entries.forEach(entry=>{
+      if (!entry.isIntersecting) return;
+      entry.target._runKpiAnalysis();
+      observer.unobserve(entry.target);
+    }), {threshold:.25});
+    sections.forEach(section=>observer.observe(section));
+  }
+})();
+</script>
+</body>
 </html>
